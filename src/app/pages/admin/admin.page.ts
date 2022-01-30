@@ -13,6 +13,7 @@ export class AdminPage implements OnInit {
   ngOnInit() {
   }
 
+  // Deslogea al usuario
   async onLogout(){
     await this.authSvc.logout();
   }

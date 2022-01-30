@@ -10,6 +10,7 @@ export class HomePage {
 
   constructor(private authSvc: AuthService) {}
 
+  // Deslogea al usuario
   async onLogout(){
     await this.authSvc.logout();
   }

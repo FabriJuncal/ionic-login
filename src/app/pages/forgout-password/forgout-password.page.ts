@@ -15,6 +15,7 @@ export class ForgoutPasswordPage implements OnInit {
   ngOnInit() {
   }
 
+  // Envía un email de recuperación de contraseña y redirecciona al Login
   async onResetPassword(email) {
     try {
 

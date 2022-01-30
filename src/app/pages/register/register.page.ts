@@ -15,6 +15,7 @@ export class RegisterPage implements OnInit {
   ngOnInit() {
   }
 
+  // Registra un nuevo usuario
   async onRegister(email, password) {
     try {
       const user = await this.authSvc.register(email.value, password.value);
@@ -28,7 +29,8 @@ export class RegisterPage implements OnInit {
     }
   }
 
-  private  redirectUser(isVerified: boolean): void {
+  // Verifica que el email del usuario se encuentre verificado y redirecciona
+  private redirectUser(isVerified: boolean): void {
     if(isVerified){
       this.router.navigateByUrl('/admin');
     }else{
