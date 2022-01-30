@@ -2,5 +2,5 @@ export interface User {
     uid: string;
     email: string;
     displayName: string;
-    emailVerifed: boolean;
+    emailVerified: boolean;
 };
