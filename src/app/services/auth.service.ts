@@ -25,8 +25,6 @@ export class AuthService {
 
   constructor() {
 
-    this.user$ = this.af
-
     const auth = getAuth();
     onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -64,7 +62,7 @@ export class AuthService {
 
   }
 
-  async loginGoogle(): Promise<User> {
+  async loginGoogle(){
     try{
 
       const provider = new GoogleAuthProvider();
@@ -78,30 +76,20 @@ export class AuthService {
     }
   }
 
-  async register( email: string, password: string ): Promise<User> {
+  async register( email: string, password: string ){
     try{
 
       const auth = getAuth();
-      await createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          // Signed in
-          const user = userCredential.user;
-          this.sendVerificationEmail();
-
-          // ...
-        })
-        .catch((error) => {
-          const errorCode = error.code;
-          const errorMessage = error.message;
-          // ..
-        });
+      const { user } = await createUserWithEmailAndPassword(auth, email, password);
+      this.sendVerificationEmail();
+      return user;
 
     } catch(error){
       console.log('Error->', error);
     }
   }
 
-  async login( email: string, password: string ): Promise<User> {
+  async login( email: string, password: string ){
     try{
 
       const auth = getAuth();
@@ -147,7 +135,7 @@ export class AuthService {
     }
   }
 
-  private updateUserData(user: User): Promise<void> {
+  private updateUserData(user){
 
     const db = getFirestore();
 
