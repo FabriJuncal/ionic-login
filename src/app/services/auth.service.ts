@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { getAuth,
          signOut,
@@ -21,53 +22,41 @@ import { User } from '../shared/user.interface';
 })
 export class AuthService {
 
+  // Observable que almacena la session del usuario
   public user$: Observable<User>;
 
-  constructor() {
-
-    const auth = getAuth();
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // User is signed in, see docs for a list of available properties
-        // https://firebase.google.com/docs/reference/js/firebase.User
-        const db = getFirestore();
-        return doc(db, `users/${user.uid}`);
-
-      } else {
-        // User is signed out
-        return of(null);
-      }
-    });
-
+  constructor(private router: Router) {
+    this.user$ = this.authStateUser();
   }
 
-  async resetPassword(email: string): Promise<void> {
+  // Obtiene la sesión del usuario logeado
+  authStateUser(): Observable<User>{
+    return new Observable( subscriber => {
+        const auth = getAuth();
+        const unsubscribe = onAuthStateChanged(auth, subscriber);
+        return unsubscribe;
+    });
+  }
+
+  // Envía un correo de recuperación de contraseña
+  async resetPassword(email): Promise<void> {
     try{
-
       const auth = getAuth();
-      sendPasswordResetEmail(auth, email)
-        .then(() => {
-          // Password reset email sent!
-          // ..
-        })
-        .catch((error) => {
-          const errorCode = error.code;
-          const errorMessage = error.message;
-          // ..
-        });
-
+      await sendPasswordResetEmail(auth, email);
     } catch(error){
       console.log('Error->', error);
     }
 
   }
 
-  async loginGoogle(){
+  // Logea al usuario con Google
+  async loginGoogle(): Promise<User>{
     try{
 
       const provider = new GoogleAuthProvider();
       const auth = getAuth();
       const {user} = await signInWithPopup(auth, provider);
+
       this.updateUserData(user);
       return user;
 
@@ -76,7 +65,8 @@ export class AuthService {
     }
   }
 
-  async register( email: string, password: string ){
+  // Registra al usuario con email y contraseña
+  async register( email: string, password: string ): Promise<User>{
     try{
 
       const auth = getAuth();
@@ -89,14 +79,14 @@ export class AuthService {
     }
   }
 
-  async login( email: string, password: string ){
+  // Logea al usuario con email y contraseña
+  async login( email: string, password: string ): Promise<User>{
     try{
 
       const auth = getAuth();
       const { user } = await signInWithEmailAndPassword(auth, email, password);
 
       this.updateUserData(user);
-
       return user;
 
     } catch(error){
@@ -104,6 +94,7 @@ export class AuthService {
     }
   }
 
+  // Envia un correo de verificación
   async sendVerificationEmail(): Promise<void> {
     try{
 
@@ -119,32 +110,46 @@ export class AuthService {
     }
   }
 
+  // Verifica si el email del usuario está verificado
+  isEmailVerified(user: User): boolean {
+    return user.emailVerified === true ? true : false;
+  }
+
+  // Deslogea al usuario
   async logout(): Promise<void> {
     try{
 
-      const auth = getAuth();
-      signOut(auth).then(() => {
-        // Sign-out successful.
-      }).catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-      });
+      console.log(this.user$);
+      if(this.user$){
+        const auth = getAuth();
+        signOut(auth).then(() => {
+          // Sign-out successful.
+          console.log('Sign-out successful');
+          this.router.navigate(['/login']);
+
+        }).catch((error) => {
+          console.log('Error->', error);
+        });
+      }else{
+        this.router.navigate(['/login']);
+      }
 
     } catch(error){
       console.log('Error->', error);
     }
   }
 
-  private updateUserData(user){
+  // Actualiza los datos del usuario al logearse
+  private updateUserData(user: User){
 
+    console.log('user->', user);
     const db = getFirestore();
-
     const userRef = doc(db, `users/${user.uid}`);
 
     const data: User = {
       uid: user.uid,
       email: user.email,
-      emailVerifed: user.emailVerifed,
+      emailVerified: user.emailVerified,
       displayName: user.displayName
     };
 
